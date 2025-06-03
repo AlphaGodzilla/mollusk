@@ -1,5 +1,6 @@
 //! Module for working with Solana programs.
 
+use solana_sdk_ids::{address_lookup_table, compute_budget, config, vote};
 use {
     agave_feature_set::FeatureSet,
     solana_account::Account,
@@ -142,6 +143,26 @@ static BUILTINS: &[Builtin] = &[
         program_id: solana_sdk_ids::stake::id(),
         name: "solana_stake_program",
         entrypoint: solana_stake_program::stake_instruction::Entrypoint::vm,
+    },
+    Builtin {
+        program_id: address_lookup_table::ID,
+        name: "address_lookup_table_program",
+        entrypoint: solana_address_lookup_table_program::processor::Entrypoint::vm,
+    },
+    Builtin {
+        program_id: compute_budget::ID,
+        name: "compute_budget_program",
+        entrypoint: solana_compute_budget_program::Entrypoint::vm,
+    },
+    Builtin {
+        program_id: config::ID,
+        name: "config_program",
+        entrypoint: solana_config_program::config_processor::Entrypoint::vm,
+    },
+    Builtin {
+        program_id: vote::ID,
+        name: "vote_program",
+        entrypoint: solana_vote_program::vote_processor::Entrypoint::vm,
     },
     /* ... */
 ];

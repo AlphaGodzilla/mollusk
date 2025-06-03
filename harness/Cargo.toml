@@ -59,6 +59,10 @@ solana-sysvar = { workspace = true }
 solana-sysvar-id = { workspace = true }
 solana-timings = { workspace = true }
 solana-transaction-context = { workspace = true }
+solana-compute-budget-program = { workspace = true }
+solana-address-lookup-table-program = { workspace = true }
+solana-config-program = { workspace = true }
+solana-vote-program = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
