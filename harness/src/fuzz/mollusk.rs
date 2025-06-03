@@ -99,6 +99,7 @@ impl From<&FuzzEffects> for InstructionResult {
             raw_result,
             return_data,
             resulting_accounts,
+            logs: vec![]
         }
     }
 }

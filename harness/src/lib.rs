@@ -417,7 +417,6 @@ pub struct Mollusk {
     pub compute_budget: ComputeBudget,
     pub feature_set: FeatureSet,
     pub fee_structure: FeeStructure,
-    pub logger: Option<Rc<RefCell<solana_log_collector::LogCollector>>>,
     pub program_cache: ProgramCache,
     pub sysvars: Sysvars,
     #[cfg(feature = "fuzz-fd")]
@@ -451,7 +450,6 @@ impl Default for Mollusk {
             fee_structure: FeeStructure::default(),
             program_cache: ProgramCache::default(),
             sysvars: Sysvars::default(),
-            logger: None,
             #[cfg(feature = "fuzz-fd")]
             slot: 0,
         }
@@ -535,6 +533,7 @@ impl Mollusk {
             self.compute_budget.max_instruction_trace_length,
         );
 
+        let logger = solana_log_collector::LogCollector::new_ref();
         let invoke_result = {
             let mut program_cache = self.program_cache.cache().write().unwrap();
             let sysvar_cache = self.sysvars.setup_sysvar_cache(accounts);
@@ -549,7 +548,7 @@ impl Mollusk {
                     Arc::new(self.feature_set.clone()),
                     &sysvar_cache,
                 ),
-                self.logger.clone(),
+                Some(logger.clone()),
                 self.compute_budget,
             );
             if let Some(precompile) = get_precompile(&instruction.program_id, |feature_id| {
@@ -597,11 +596,13 @@ impl Mollusk {
             accounts.to_vec()
         };
 
+        let logs = logger.borrow().get_recorded_content().to_vec();
         InstructionResult {
             compute_units_consumed,
             execution_time: timings.details.execute_us.0,
             program_result: invoke_result.clone().into(),
             raw_result: invoke_result,
+            logs,
             return_data,
             resulting_accounts,
         }

@@ -225,6 +225,7 @@ pub(crate) fn parse_fixture_effects(
         compute_units_consumed: compute_unit_limit.saturating_sub(effects.compute_units_available),
         return_data,
         resulting_accounts,
+        logs: vec![]
     }
 }
 

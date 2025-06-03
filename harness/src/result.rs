@@ -87,6 +87,7 @@ pub struct InstructionResult {
     pub raw_result: Result<(), InstructionError>,
     /// The return data produced by the instruction, if any.
     pub return_data: Vec<u8>,
+    pub logs: Vec<String>,
     /// The resulting accounts after executing the instruction.
     ///
     /// This includes all accounts provided to the processor, in the order
@@ -104,6 +105,7 @@ impl Default for InstructionResult {
             raw_result: Ok(()),
             return_data: vec![],
             resulting_accounts: vec![],
+            logs: vec![]
         }
     }
 }
