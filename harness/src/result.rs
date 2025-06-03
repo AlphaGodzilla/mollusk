@@ -105,7 +105,7 @@ impl Default for InstructionResult {
             raw_result: Ok(()),
             return_data: vec![],
             resulting_accounts: vec![],
-            logs: vec![]
+            logs: vec![],
         }
     }
 }
@@ -245,6 +245,7 @@ impl InstructionResult {
         self.raw_result = other.raw_result;
         self.return_data = other.return_data;
         self.resulting_accounts = other.resulting_accounts;
+        self.logs.extend(other.logs);
     }
 
     fn compare_resulting_accounts(
