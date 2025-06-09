@@ -506,6 +506,7 @@ impl Mollusk {
         &self,
         instruction: &Instruction,
         accounts: &[(Pubkey, Account)],
+        collect_log: Option<bool>
     ) -> InstructionResult {
         let mut compute_units_consumed = 0;
         let mut timings = ExecuteTimings::default();
@@ -533,7 +534,11 @@ impl Mollusk {
             self.compute_budget.max_instruction_trace_length,
         );
 
-        let logger = solana_log_collector::LogCollector::new_ref();
+        let logger = if collect_log.unwrap_or(false) {
+            Some(solana_log_collector::LogCollector::new_ref())
+        }else {
+            None
+        };
         let invoke_result = {
             let mut program_cache = self.program_cache.cache().write().unwrap();
             let sysvar_cache = self.sysvars.setup_sysvar_cache(accounts);
@@ -548,7 +553,7 @@ impl Mollusk {
                     Arc::new(self.feature_set.clone()),
                     &sysvar_cache,
                 ),
-                Some(logger.clone()),
+                logger.clone(),
                 self.compute_budget,
             );
             if let Some(precompile) = get_precompile(&instruction.program_id, |feature_id| {
@@ -596,7 +601,11 @@ impl Mollusk {
             accounts.to_vec()
         };
 
-        let logs = logger.borrow().get_recorded_content().to_vec();
+        let logs = if let Some(logger) = logger {
+            logger.borrow().get_recorded_content().to_vec()
+        }else {
+            vec![]
+        };
         InstructionResult {
             compute_units_consumed,
             execution_time: timings.details.execute_us.0,
@@ -622,6 +631,7 @@ impl Mollusk {
         &self,
         instructions: &[Instruction],
         accounts: &[(Pubkey, Account)],
+        collect_log: Option<bool>
     ) -> InstructionResult {
         let mut result = InstructionResult {
             resulting_accounts: accounts.to_vec(),
@@ -629,7 +639,7 @@ impl Mollusk {
         };
 
         for instruction in instructions {
-            let this_result = self.process_instruction(instruction, &result.resulting_accounts);
+            let this_result = self.process_instruction(instruction, &result.resulting_accounts, collect_log);
 
             result.absorb(this_result);
 
@@ -669,7 +679,7 @@ impl Mollusk {
         accounts: &[(Pubkey, Account)],
         checks: &[Check],
     ) -> InstructionResult {
-        let result = self.process_instruction(instruction, accounts);
+        let result = self.process_instruction(instruction, accounts, None);
 
         #[cfg(any(feature = "fuzz", feature = "fuzz-fd"))]
         fuzz::generate_fixtures_from_mollusk_test(self, instruction, accounts, &result);
@@ -758,7 +768,7 @@ impl Mollusk {
         self.compute_budget = compute_budget;
         self.feature_set = feature_set;
         self.sysvars = sysvars;
-        self.process_instruction(&instruction, &accounts)
+        self.process_instruction(&instruction, &accounts, None)
     }
 
     #[cfg(feature = "fuzz")]
@@ -860,7 +870,7 @@ impl Mollusk {
         self.compute_budget = compute_budget;
         self.feature_set = feature_set;
         self.slot = slot;
-        self.process_instruction(&instruction, &accounts)
+        self.process_instruction(&instruction, &accounts, None)
     }
 
     #[cfg(feature = "fuzz-fd")]
@@ -898,7 +908,7 @@ impl Mollusk {
         self.feature_set = feature_set;
         self.slot = slot;
 
-        let result = self.process_instruction(&instruction, &accounts);
+        let result = self.process_instruction(&instruction, &accounts, None);
         let expected_result = fuzz::firedancer::parse_fixture_effects(
             &accounts,
             self.compute_budget.compute_unit_limit,
@@ -948,7 +958,7 @@ impl Mollusk {
         self.feature_set = feature_set;
         self.slot = slot;
 
-        let result = self.process_instruction(&instruction, &accounts);
+        let result = self.process_instruction(&instruction, &accounts, None);
         let expected = fuzz::firedancer::parse_fixture_effects(
             &accounts,
             self.compute_budget.compute_unit_limit,

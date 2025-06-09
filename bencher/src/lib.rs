@@ -119,7 +119,7 @@ impl<'a> MolluskComputeUnitBencher<'a> {
         let bench_results = std::mem::take(&mut self.benches)
             .into_iter()
             .map(|(name, instruction, accounts)| {
-                let result = self.mollusk.process_instruction(instruction, accounts);
+                let result = self.mollusk.process_instruction(instruction, accounts, None);
                 match result.program_result {
                     ProgramResult::Success => (),
                     _ => {
