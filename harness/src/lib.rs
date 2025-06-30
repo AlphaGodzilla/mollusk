@@ -587,7 +587,7 @@ impl Mollusk {
                         .find_index_of_account(pubkey)
                         .map(|index| {
                             let resulting_account = transaction_context
-                                .get_account_at_index(index)
+                                .get_key_of_account_at_index(index)
                                 .unwrap()
                                 .borrow()
                                 .clone()
